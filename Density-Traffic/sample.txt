@@ -1,0 +1,330 @@
+import time
+import threading
+from flask import Flask, render_template, Response, jsonify
+from ultralytics import YOLO
+import cv2
+
+app = Flask(__name__)
+
+# Load the YOLOv8 model
+detection_model = YOLO("yolov8n.pt")
+
+# Video sources for the four lanes
+video_sources = {
+    "lane1": "lane 1.mp4",
+    "lane2": "lane 2.mp4",
+    "lane3": "lane 3.mp4",
+    "lane4": "lane 4.mp4"
+}
+
+# Traffic signal and vehicle counts for each lane
+signal_states = {"lane1": "red", "lane2": "red",
+                 "lane3": "red", "lane4": "red"}
+vehicle_counts = {"lane1": 0, "lane2": 0, "lane3": 0, "lane4": 0}
+remaining_green_time = {"lane1": 0, "lane2": 0,
+                        "lane3": 0, "lane4": 0}  # To track remaining green time
+
+# Traffic timing parameters
+BASE_GREEN_TIME = 10          # Base green light time (seconds)
+VEHICLE_TIME_MULTIPLIER = 1    # Additional green time per vehicle (seconds)
+YELLOW_TIME = 3               # Yellow signal duration (seconds)
+
+# Vehicle class IDs for YOLO (Car, Bus, Truck, Motorbike)
+vehicle_class_ids = [2, 3, 5, 7]
+
+# Function to detect vehicles using YOLOv8
+
+
+def detect_vehicles(frame):
+    results = detection_model(frame, conf=0.3)[0]  # Detect objects with YOLO
+    vehicle_count = sum(1 for box in results.boxes if int(
+        box.cls[0]) in vehicle_class_ids)
+    annotated_frame = results.plot()  # Annotate the frame
+    return vehicle_count, annotated_frame
+
+# Function to generate video frames for a lane
+
+
+def gen_frames(lane):
+    cap = cv2.VideoCapture(video_sources[lane])
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        vehicle_count, annotated_frame = detect_vehicles(frame)
+        vehicle_counts[lane] = vehicle_count  # Update the vehicle count
+
+        ret, buffer = cv2.imencode('.jpg', annotated_frame)
+        frame = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+    cap.release()
+
+# Traffic signal control function (run in the background)
+
+
+def manage_traffic_signals():
+    lanes = list(vehicle_counts.keys())  # ["lane1", "lane2", "lane3", "lane4"]
+    while True:
+        for i in range(len(lanes)):
+            current_lane = lanes[i]
+            next_lane = lanes[(i + 1) % len(lanes)]  # Circulate clockwise
+
+            # Calculate green time for the current lane
+            green_time = BASE_GREEN_TIME + \
+                vehicle_counts[current_lane] * VEHICLE_TIME_MULTIPLIER
+
+            # Enforce minimum and maximum green light durations
+            # Ensure green time is between 10 and 60 seconds
+            green_time = max(10, min(green_time, 60))
+
+            # Set current lane green, others red
+            for lane in lanes:
+                if lane == current_lane:
+                    signal_states[lane] = "green"
+                    remaining_green_time[lane] = green_time
+                    print(f"{lane} green for {green_time} seconds")
+                    for t in range(green_time, 0, -1):
+                        remaining_green_time[lane] = t
+                        time.sleep(1)
+                    signal_states[lane] = "yellow"
+                    remaining_green_time[lane] = YELLOW_TIME
+                    for t in range(YELLOW_TIME, 0, -1):
+                        remaining_green_time[lane] = t
+                        time.sleep(1)
+                    signal_states[lane] = "red"
+                else:
+                    signal_states[lane] = "red"
+                    remaining_green_time[lane] = 0
+            time.sleep(1)
+
+
+# Start traffic signal control in a separate thread
+signal_thread = threading.Thread(target=manage_traffic_signals)
+signal_thread.daemon = True
+signal_thread.start()
+
+# Web routes to handle video feeds and traffic signals
+
+
+@app.route('/video')
+def index_video():
+    return render_template('video.html')
+
+
+@app.route('/video_feed/<lane>')
+def video_feed(lane):
+    return Response(gen_frames(lane), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/vehicle_data')
+def vehicle_data():
+    return jsonify({
+        'lane1_vehicles': vehicle_counts['lane1'],
+        'lane2_vehicles': vehicle_counts['lane2'],
+        'lane3_vehicles': vehicle_counts['lane3'],
+        'lane4_vehicles': vehicle_counts['lane4'],
+        'lane1_signal': signal_states['lane1'],
+        'lane2_signal': signal_states['lane2'],
+        'lane3_signal': signal_states['lane3'],
+        'lane4_signal': signal_states['lane4'],
+        'lane1_remaining_time': remaining_green_time['lane1'],
+        'lane2_remaining_time': remaining_green_time['lane2'],
+        'lane3_remaining_time': remaining_green_time['lane3'],
+        'lane4_remaining_time': remaining_green_time['lane4'],
+    })
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Traffic Management System</title>
+    <style>
+        body {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-items: flex-start;
+            background-color: #333;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .lane {
+            margin: 20px;
+            text-align: center;
+            width: 400px;
+            display: flex;
+            flex-direction: row;
+            /* Add horizontal layout for signal and video */
+            align-items: center;
+        }
+
+        .lane img {
+            border: 5px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .traffic-light {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20px;
+        }
+
+        .signal-light {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 10px 0;
+        }
+
+        .green {
+            background-color: green;
+        }
+
+        .red {
+            background-color: red;
+        }
+
+        .yellow {
+            background-color: yellow;
+        }
+
+        .grey {
+            background-color: grey;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2em;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Function to update the vehicle counts and signal states
+        function updateData() {
+            $.getJSON('/vehicle_data', function (data) {
+                // Update vehicle counts
+                $('#lane1-vehicles').text(data.lane1_vehicles);
+                $('#lane2-vehicles').text(data.lane2_vehicles);
+                $('#lane3-vehicles').text(data.lane3_vehicles);
+                $('#lane4-vehicles').text(data.lane4_vehicles);
+
+                // Update signal colors
+                $('#lane1-red').attr('class', 'signal-light ' + (data.lane1_signal === 'red' ? 'red' : 'grey'));
+                $('#lane1-yellow').attr('class', 'signal-light ' + (data.lane1_signal === 'yellow' ? 'yellow' : 'grey'));
+                $('#lane1-green').attr('class', 'signal-light ' + (data.lane1_signal === 'green' ? 'green' : 'grey'));
+
+                $('#lane2-red').attr('class', 'signal-light ' + (data.lane2_signal === 'red' ? 'red' : 'grey'));
+                $('#lane2-yellow').attr('class', 'signal-light ' + (data.lane2_signal === 'yellow' ? 'yellow' : 'grey'));
+                $('#lane2-green').attr('class', 'signal-light ' + (data.lane2_signal === 'green' ? 'green' : 'grey'));
+
+                $('#lane3-red').attr('class', 'signal-light ' + (data.lane3_signal === 'red' ? 'red' : 'grey'));
+                $('#lane3-yellow').attr('class', 'signal-light ' + (data.lane3_signal === 'yellow' ? 'yellow' : 'grey'));
+                $('#lane3-green').attr('class', 'signal-light ' + (data.lane3_signal === 'green' ? 'green' : 'grey'));
+
+                $('#lane4-red').attr('class', 'signal-light ' + (data.lane4_signal === 'red' ? 'red' : 'grey'));
+                $('#lane4-yellow').attr('class', 'signal-light ' + (data.lane4_signal === 'yellow' ? 'yellow' : 'grey'));
+                $('#lane4-green').attr('class', 'signal-light ' + (data.lane4_signal === 'green' ? 'green' : 'grey'));
+
+                // Update remaining time for each lane
+                $('#lane1-timer').text(data.lane1_remaining_time + 's');
+                $('#lane2-timer').text(data.lane2_remaining_time + 's');
+                $('#lane3-timer').text(data.lane3_remaining_time + 's');
+                $('#lane4-timer').text(data.lane4_remaining_time + 's');
+            });
+        }
+
+        // Periodically fetch new data every 2 seconds
+        setInterval(updateData, 1000);
+
+        // Fetch data when the page loads
+        $(document).ready(updateData);
+    </script>
+</head>
+
+<body>
+    <!-- Lane 1 -->
+    <div class="lane">
+        <div class="traffic-light">
+            <div id="lane1-red" class="signal-light grey"></div>
+            <div id="lane1-yellow" class="signal-light grey"></div>
+            <div id="lane1-green" class="signal-light grey"></div>
+            <div class="timer" id="lane1-timer">0s</div>
+        </div>
+        <div>
+            <h2>Lane 1</h2>
+            <img src="/video_feed/lane1" alt="Lane 1 Video">
+            <p>Vehicles: <span id="lane1-vehicles">0</span></p>
+        </div>
+    </div>
+
+    <!-- Lane 2 -->
+    <div class="lane">
+        <div class="traffic-light">
+            <div id="lane2-red" class="signal-light grey"></div>
+            <div id="lane2-yellow" class="signal-light grey"></div>
+            <div id="lane2-green" class="signal-light grey"></div>
+            <div class="timer" id="lane2-timer">0s</div>
+        </div>
+        <div>
+            <h2>Lane 2</h2>
+            <img src="/video_feed/lane2" alt="Lane 2 Video">
+            <p>Vehicles: <span id="lane2-vehicles">0</span></p>
+        </div>
+    </div>
+
+    <!-- Lane 3 -->
+    <div class="lane">
+        <div class="traffic-light">
+            <div id="lane3-red" class="signal-light grey"></div>
+            <div id="lane3-yellow" class="signal-light grey"></div>
+            <div id="lane3-green" class="signal-light grey"></div>
+            <div class="timer" id="lane3-timer">0s</div>
+        </div>
+        <div>
+            <h2>Lane 3</h2>
+            <img src="/video_feed/lane3" alt="Lane 3 Video">
+            <p>Vehicles: <span id="lane3-vehicles">0</span></p>
+        </div>
+    </div>
+
+    <!-- Lane 4 -->
+    <div class="lane">
+        <div class="traffic-light">
+            <div id="lane4-red" class="signal-light grey"></div>
+            <div id="lane4-yellow" class="signal-light grey"></div>
+            <div id="lane4-green" class="signal-light grey"></div>
+            <div class="timer" id="lane4-timer">0s</div>
+        </div>
+        <div>
+            <h2>Lane 4</h2>
+            <img src="/video_feed/lane4" alt="Lane 4 Video">
+            <p>Vehicles: <span id="lane4-vehicles">0</span></p>
+        </div>
+    </div>
+</body>
+
+</html>
