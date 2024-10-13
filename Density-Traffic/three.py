@@ -11,9 +11,9 @@ detection_model = YOLO("yolov8n.pt")
 
 # Video sources for the three lanes
 video_sources = {
-    "lane1": "lane 1.mp4",
-    "lane2": "lane 2.mp4",
-    "lane3": "lane 3.mp4"
+    "lane1": "Video/lane 1.mp4",
+    "lane2": "Video/lane 2.mp4",
+    "lane3": "Video/lane 3.mp4"
 }
 
 # Traffic signal and vehicle counts for each lane
