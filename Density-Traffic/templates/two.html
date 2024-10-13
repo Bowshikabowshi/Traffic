@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Lane Traffic Management System</title>
+    <style>
+        body {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-items: flex-start;
+            background-color: #333;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .lane {
+            margin: 20px;
+            text-align: center;
+            width: 400px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .lane img {
+            border: 5px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .traffic-light {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20px;
+        }
+
+        .signal-light {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 10px 0;
+        }
+
+        .green {
+            background-color: green;
+        }
+
+        .red {
+            background-color: red;
+        }
+
+        .yellow {
+            background-color: yellow;
+        }
+
+        .grey {
+            background-color: grey;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .green-timer {
+            color: green;
+        }
+
+        .red-timer {
+            color: red;
+        }
+
+        .waiting-time {
+            color: #ffcc00;
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function updateData() {
+            $.getJSON('/vehicle_data', function (data) {
+                // Update vehicle counts
+                $('#lane1-vehicles').text(data.lane1_vehicles);
+                $('#lane2-vehicles').text(data.lane2_vehicles);
+
+                // Update signal colors
+                $('#lane1-red').attr('class', 'signal-light ' + (data.lane1_signal === 'red' ? 'red' : 'grey'));
+                $('#lane1-yellow').attr('class', 'signal-light ' + (data.lane1_signal === 'yellow' ? 'yellow' : 'grey'));
+                $('#lane1-green').attr('class', 'signal-light ' + (data.lane1_signal === 'green' ? 'green' : 'grey'));
+
+                $('#lane2-red').attr('class', 'signal-light ' + (data.lane2_signal === 'red' ? 'red' : 'grey'));
+                $('#lane2-yellow').attr('class', 'signal-light ' + (data.lane2_signal === 'yellow' ? 'yellow' : 'grey'));
+                $('#lane2-green').attr('class', 'signal-light ' + (data.lane2_signal === 'green' ? 'green' : 'grey'));
+
+                // Update remaining time for each lane
+                $('#lane1-timer').text(data.lane1_remaining_time + 's')
+                    .attr('class', (data.lane1_signal === 'green' ? 'timer green-timer' : 'timer red-timer'));
+
+                $('#lane2-timer').text(data.lane2_remaining_time + 's')
+                    .attr('class', (data.lane2_signal === 'green' ? 'timer green-timer' : 'timer red-timer'));
+
+                // Display waiting time for the red signal lane
+                if (data.lane1_signal === 'red') {
+                    $('#lane1-waiting-time').text('Waiting Time: ' + data.lane1_waiting_time + 's');
+                    $('#lane2-waiting-time').text('');
+                } else {
+                    $('#lane1-waiting-time').text('');
+                    $('#lane2-waiting-time').text('Waiting Time: ' + data.lane2_waiting_time + 's');
+                }
+            });
+        }
+
+        // Fetch new data every second
+        setInterval(updateData, 1000);
+
+        // Fetch data when the page loads
+        $(document).ready(updateData);
+    </script>
+</head>
+
+<body>
+
+    <!-- Lane 1 -->
+    <div class="lane">
+        <div class="traffic-light">
+            <div id="lane1-red" class="signal-light grey"></div>
+            <div id="lane1-yellow" class="signal-light grey"></div>
+            <div id="lane1-green" class="signal-light grey"></div>
+            <div id="lane1-timer" class="timer red-timer">0s</div>
+            <div id="lane1-waiting-time" class="waiting-time"></div>
+        </div>
+        <div>
+            <h2>Lane 1 - Vehicles: <span id="lane1-vehicles">0</span></h2>
+            <img src="/video_feed/lane1" alt="Lane 1 video feed">
+        </div>
+    </div>
+
+    <!-- Lane 2 -->
+    <div class="lane">
+        <div class="traffic-light">
+            <div id="lane2-red" class="signal-light grey"></div>
+            <div id="lane2-yellow" class="signal-light grey"></div>
+            <div id="lane2-green" class="signal-light grey"></div>
+            <div id="lane2-timer" class="timer red-timer">0s</div>
+            <div id="lane2-waiting-time" class="waiting-time"></div>
+        </div>
+        <div>
+            <h2>Lane 2 - Vehicles: <span id="lane2-vehicles">0</span></h2>
+            <img src="/video_feed/lane2" alt="Lane 2 video feed">
+        </div>
+    </div>
+
+</body>
+
+</html>
