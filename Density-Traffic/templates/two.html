@@ -89,9 +89,15 @@
             font-size: 1.2em;
             margin-top: 5px;
         }
+
+        select {
+            margin-bottom: 20px;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        let currentFeed = 'default';
+
         function updateData() {
             $.getJSON('/vehicle_data', function (data) {
                 // Update vehicle counts
@@ -125,18 +131,34 @@
             });
         }
 
+        // Function to change the video feed
+        function changeFeed() {
+            currentFeed = $('#feed-selector').val();
+            $('#lane1 img').attr('src', `/video_feed/lane1/${currentFeed}`);
+            $('#lane2 img').attr('src', `/video_feed/lane2/${currentFeed}`);
+        }
+
         // Fetch new data every second
         setInterval(updateData, 1000);
 
         // Fetch data when the page loads
-        $(document).ready(updateData);
+        $(document).ready(function () {
+            changeFeed();
+            updateData();
+        });
     </script>
 </head>
 
 <body>
 
+    <!-- Feed Selector -->
+    <select id="feed-selector" onchange="changeFeed()">
+        <option value="video">Default Video Feed</option>
+        <option value="camera">Real Camera Feed</option>
+    </select>
+
     <!-- Lane 1 -->
-    <div class="lane">
+    <div class="lane" id="lane1">
         <div class="traffic-light">
             <div id="lane1-red" class="signal-light grey"></div>
             <div id="lane1-yellow" class="signal-light grey"></div>
@@ -146,12 +168,12 @@
         </div>
         <div>
             <h2>Lane 1 - Vehicles: <span id="lane1-vehicles">0</span></h2>
-            <img src="/video_feed/lane1" alt="Lane 1 video feed">
+            <img src="/video_feed/lane1/video" alt="Lane 1 video feed">
         </div>
     </div>
 
     <!-- Lane 2 -->
-    <div class="lane">
+    <div class="lane" id="lane2">
         <div class="traffic-light">
             <div id="lane2-red" class="signal-light grey"></div>
             <div id="lane2-yellow" class="signal-light grey"></div>
@@ -161,7 +183,7 @@
         </div>
         <div>
             <h2>Lane 2 - Vehicles: <span id="lane2-vehicles">0</span></h2>
-            <img src="/video_feed/lane2" alt="Lane 2 video feed">
+            <img src="/video_feed/lane2/video" alt="Lane 2 video feed">
         </div>
     </div>
 

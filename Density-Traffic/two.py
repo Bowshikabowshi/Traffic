@@ -1,6 +1,6 @@
+from flask import Flask, render_template, Response, jsonify
 import time
 import threading
-from flask import Flask, render_template, Response, jsonify
 from ultralytics import YOLO
 import cv2
 
@@ -13,6 +13,12 @@ detection_model = YOLO("yolov8n.pt")
 video_sources = {
     "lane1": "Video/lane 1.mp4",
     "lane2": "Video/lane 2.mp4"
+}
+
+# Real camera sources for the two lanes (update with actual camera streams)
+real_camera_sources = {
+    "lane1": 0,
+    "lane2": 0
 }
 
 # Traffic signal and vehicle counts for each lane
@@ -38,8 +44,9 @@ def detect_vehicles(frame):
     return vehicle_count, annotated_frame
 
 
-def gen_frames(lane):
-    cap = cv2.VideoCapture(video_sources[lane])
+def gen_frames(lane, feed_type):
+    cap = cv2.VideoCapture(
+        real_camera_sources[lane] if feed_type == "camera" else video_sources[lane])
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -108,9 +115,9 @@ def index_video():
     return render_template('two.html')
 
 
-@app.route('/video_feed/<lane>')
-def video_feed(lane):
-    return Response(gen_frames(lane), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/video_feed/<lane>/<feed_type>')
+def video_feed(lane, feed_type):
+    return Response(gen_frames(lane, feed_type), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/vehicle_data')

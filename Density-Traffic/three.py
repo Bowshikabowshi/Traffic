@@ -16,6 +16,13 @@ video_sources = {
     "lane3": "Video/lane 3.mp4"
 }
 
+# Set camera sources for real-time feeds (replace with actual camera URLs or indices)
+camera_sources = {
+    "lane1": 0,  # Camera index for lane 1
+    "lane2": 0,  # Camera index for lane 2
+    "lane3": 0   # Camera index for lane 3
+}
+
 # Traffic signal and vehicle counts for each lane
 signal_states = {"lane1": "red", "lane2": "red", "lane3": "red"}
 vehicle_counts = {"lane1": 0, "lane2": 0, "lane3": 0}
@@ -30,6 +37,9 @@ YELLOW_TIME = 3
 # Vehicle class IDs for YOLO
 vehicle_class_ids = [2, 3, 5, 7]
 
+# Current feed type (video or camera)
+current_feed_type = "video"  # Default is video
+
 
 def detect_vehicles(frame):
     results = detection_model(frame, conf=0.3)[0]
@@ -40,7 +50,13 @@ def detect_vehicles(frame):
 
 
 def gen_frames(lane):
-    cap = cv2.VideoCapture(video_sources[lane])
+    global current_feed_type
+
+    if current_feed_type == "video":
+        cap = cv2.VideoCapture(video_sources[lane])
+    else:
+        cap = cv2.VideoCapture(camera_sources[lane])  # Use the camera feed
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -76,9 +92,7 @@ def manage_traffic_signals():
                     print(f"{lane} green for {green_time} seconds")
 
                     # Update waiting time for the next lane
-                    # Get the next lane index
                     next_lane = lanes[(i + 1) % len(lanes)]
-                    # Set waiting time of the next lane
                     waiting_time[next_lane] = green_time
 
                     for t in range(green_time, 0, -1):
@@ -95,16 +109,14 @@ def manage_traffic_signals():
                     # After yellow, set to red
                     signal_states[lane] = "red"
                 else:
-                    # Increment waiting time for lanes in red state
                     if signal_states[lane] == "red":
                         waiting_time[lane] += 1
 
-                    # Reset the waiting time for the current lane when it is green
                     if signal_states[lane] == "green":
                         waiting_time[lane] = 0
                     remaining_green_time[lane] = 0
 
-            time.sleep(1)  # Sleep to prevent busy-waiting
+            time.sleep(1)
 
 
 # Start traffic signal control in a separate thread
@@ -123,21 +135,25 @@ def video_feed(lane):
     return Response(gen_frames(lane), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
+@app.route('/set_feed_type/<feed_type>')
+def set_feed_type(feed_type):
+    global current_feed_type
+    current_feed_type = feed_type
+    return jsonify(success=True)
+
+
 @app.route('/vehicle_data')
 def vehicle_data():
     return jsonify({
         'lane1_vehicles': vehicle_counts['lane1'],
         'lane2_vehicles': vehicle_counts['lane2'],
         'lane3_vehicles': vehicle_counts['lane3'],
-
         'lane1_signal': signal_states['lane1'],
         'lane2_signal': signal_states['lane2'],
         'lane3_signal': signal_states['lane3'],
-
         'lane1_remaining_time': remaining_green_time['lane1'],
         'lane2_remaining_time': remaining_green_time['lane2'],
         'lane3_remaining_time': remaining_green_time['lane3'],
-
         'lane1_waiting_time': waiting_time['lane1'],
         'lane2_waiting_time': waiting_time['lane2'],
         'lane3_waiting_time': waiting_time['lane3'],
