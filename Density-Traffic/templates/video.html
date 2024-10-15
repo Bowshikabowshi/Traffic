@@ -130,13 +130,33 @@
             $('#lane' + laneNumber + '-remaining-time').text(data['lane' + laneNumber + '_remaining_time']);
             $('#lane' + laneNumber + '-remaining-time').attr('class', data['lane' + laneNumber + '_signal'] === 'green' ? 'timer green-timer' : 'timer red-timer');
 
-            // Update waiting time (newly corrected part)
+            // Update waiting time only for the next green light
             const nextGreenTime = data['lane' + laneNumber + '_next_green'];
-            if (nextGreenTime > 0) {
-                $('#lane' + laneNumber + '-waiting-time').text('Next green in ' + nextGreenTime + 's');
+            const isGreen = data['lane' + laneNumber + '_signal'] === 'green';
+            const nextLane = getNextLane(data); // Get the lane waiting for the next green light
+
+            // Show waiting time for the lane that is next in line for green
+            if (isGreen) {
+                // Hide waiting time for all other lanes
+                $('#lane' + laneNumber + '-waiting-time').text('');
             } else {
-                $('#lane' + laneNumber + '-waiting-time').text('Green now!');
+                // Show waiting time only if it's the lane next in line for green
+                if (laneNumber === nextLane) {
+                    $('#lane' + laneNumber + '-waiting-time').text('Next green in ' + nextGreenTime + 's');
+                } else {
+                    $('#lane' + laneNumber + '-waiting-time').text(''); // Hide waiting time for all other lanes
+                }
             }
+        }
+
+        function getNextLane(data) {
+            // Determine which lane is next for green
+            for (let i = 1; i <= 4; i++) {
+                if (data['lane' + i + '_signal'] === 'green') {
+                    return (i % 4) + 1; // Return the next lane (wrap around to lane 1 after lane 4)
+                }
+            }
+            return null; // In case no lane is green
         }
 
         function setFeedType() {
@@ -174,11 +194,11 @@
     <!-- Lane 1 -->
     <div class="lane" id="lane1">
         <div class="traffic-light">
-            <div id="lane1-red" class="signal-light red"></div>
+            <div id="lane1-red" class="signal-light grey"></div>
             <div id="lane1-yellow" class="signal-light grey"></div>
             <div id="lane1-green" class="signal-light grey"></div>
             <div class="timer" id="lane1-remaining-time">0</div>
-            <div class="waiting-time" id="lane1-waiting-time">0s</div>
+            <div class="waiting-time" id="lane1-waiting-time"></div>
         </div>
         <div>
             <h2>Lane 1</h2>
@@ -190,11 +210,11 @@
     <!-- Lane 2 -->
     <div class="lane" id="lane2">
         <div class="traffic-light">
-            <div id="lane2-red" class="signal-light red"></div>
+            <div id="lane2-red" class="signal-light grey"></div>
             <div id="lane2-yellow" class="signal-light grey"></div>
             <div id="lane2-green" class="signal-light grey"></div>
             <div class="timer" id="lane2-remaining-time">0</div>
-            <div class="waiting-time" id="lane2-waiting-time">0s</div>
+            <div class="waiting-time" id="lane2-waiting-time"></div>
         </div>
         <div>
             <h2>Lane 2</h2>
@@ -206,11 +226,11 @@
     <!-- Lane 3 -->
     <div class="lane" id="lane3">
         <div class="traffic-light">
-            <div id="lane3-red" class="signal-light red"></div>
+            <div id="lane3-red" class="signal-light grey"></div>
             <div id="lane3-yellow" class="signal-light grey"></div>
             <div id="lane3-green" class="signal-light grey"></div>
             <div class="timer" id="lane3-remaining-time">0</div>
-            <div class="waiting-time" id="lane3-waiting-time">0s</div>
+            <div class="waiting-time" id="lane3-waiting-time"></div>
         </div>
         <div>
             <h2>Lane 3</h2>
@@ -222,11 +242,11 @@
     <!-- Lane 4 -->
     <div class="lane" id="lane4">
         <div class="traffic-light">
-            <div id="lane4-red" class="signal-light red"></div>
+            <div id="lane4-red" class="signal-light grey"></div>
             <div id="lane4-yellow" class="signal-light grey"></div>
             <div id="lane4-green" class="signal-light grey"></div>
             <div class="timer" id="lane4-remaining-time">0</div>
-            <div class="waiting-time" id="lane4-waiting-time">0s</div>
+            <div class="waiting-time" id="lane4-waiting-time"></div>
         </div>
         <div>
             <h2>Lane 4</h2>
