@@ -111,38 +111,46 @@
                 $('#lane2-vehicles').text(data.lane2_vehicles);
                 $('#lane3-vehicles').text(data.lane3_vehicles);
 
-                // Update signal colors for Lane 1
-                $('#lane1-red').attr('class', 'signal-light ' + (data.lane1_signal === 'red' ? 'red' : 'grey'));
-                $('#lane1-yellow').attr('class', 'signal-light ' + (data.lane1_signal === 'yellow' ? 'yellow' : 'grey'));
-                $('#lane1-green').attr('class', 'signal-light ' + (data.lane1_signal === 'green' ? 'green' : 'grey'));
+                // Update signal colors and remaining green time
+                updateLaneStatus(1, data);
+                updateLaneStatus(2, data);
+                updateLaneStatus(3, data);
 
-                // Update remaining green time for Lane 1
-                $('#lane1-remaining-time').text(data.lane1_remaining_time);
-                $('#lane1-remaining-time').attr('class', 'timer green-timer');
+                // Hide waiting time for all lanes initially
+                hideAllWaitingTimes();
 
-                // Update signal colors for Lane 2
-                $('#lane2-red').attr('class', 'signal-light ' + (data.lane2_signal === 'red' ? 'red' : 'grey'));
-                $('#lane2-yellow').attr('class', 'signal-light ' + (data.lane2_signal === 'yellow' ? 'yellow' : 'grey'));
-                $('#lane2-green').attr('class', 'signal-light ' + (data.lane2_signal === 'green' ? 'green' : 'grey'));
-
-                // Update remaining green time for Lane 2
-                $('#lane2-remaining-time').text(data.lane2_remaining_time);
-                $('#lane2-remaining-time').attr('class', 'timer green-timer');
-
-                // Update signal colors for Lane 3
-                $('#lane3-red').attr('class', 'signal-light ' + (data.lane3_signal === 'red' ? 'red' : 'grey'));
-                $('#lane3-yellow').attr('class', 'signal-light ' + (data.lane3_signal === 'yellow' ? 'yellow' : 'grey'));
-                $('#lane3-green').attr('class', 'signal-light ' + (data.lane3_signal === 'green' ? 'green' : 'grey'));
-
-                // Update remaining green time for Lane 3
-                $('#lane3-remaining-time').text(data.lane3_remaining_time);
-                $('#lane3-remaining-time').attr('class', 'timer green-timer');
-
-                // Update waiting times
-                $('#lane1-waiting-time').text(data.lane1_waiting_time + 's');
-                $('#lane2-waiting-time').text(data.lane2_waiting_time + 's');
-                $('#lane3-waiting-time').text(data.lane3_waiting_time + 's');
+                // Show only next green signal waiting time
+                const nextGreenLane = getNextLane(data);
+                if (nextGreenLane !== null) {
+                    const waitingTime = data[`lane${nextGreenLane}_waiting_time`];
+                    $(`#lane${nextGreenLane}-waiting-time`).text(waitingTime + 's');
+                }
             });
+        }
+
+        function updateLaneStatus(laneNumber, data) {
+            // Update signal colors
+            $('#lane' + laneNumber + '-red').attr('class', 'signal-light ' + (data['lane' + laneNumber + '_signal'] === 'red' ? 'red' : 'grey'));
+            $('#lane' + laneNumber + '-yellow').attr('class', 'signal-light ' + (data['lane' + laneNumber + '_signal'] === 'yellow' ? 'yellow' : 'grey'));
+            $('#lane' + laneNumber + '-green').attr('class', 'signal-light ' + (data['lane' + laneNumber + '_signal'] === 'green' ? 'green' : 'grey'));
+
+            // Update remaining green time for the lane
+            $('#lane' + laneNumber + '-remaining-time').text(data['lane' + laneNumber + '_remaining_time']);
+            $('#lane' + laneNumber + '-remaining-time').attr('class', data['lane' + laneNumber + '_signal'] === 'green' ? 'timer green-timer' : 'timer red-timer');
+        }
+
+        function hideAllWaitingTimes() {
+            $('.waiting-time').text(''); // Clear waiting times for all lanes
+        }
+
+        function getNextLane(data) {
+            // Determine which lane is next for green
+            for (let i = 1; i <= 3; i++) {
+                if (data['lane' + i + '_signal'] === 'green') {
+                    return (i % 3) + 1; // Return the next lane (wrap around to lane 1 after lane 3)
+                }
+            }
+            return null; // If no lane is green
         }
 
         function setFeedType() {
@@ -154,7 +162,6 @@
                 $('#lane3 img').attr('src', '/video_feed/lane3?' + new Date().getTime());
             });
         }
-
 
         // Periodically fetch new data every second
         setInterval(updateData, 1000);
@@ -170,7 +177,6 @@
 
 <body>
     <!-- Feed Selector -->
-    <!-- Feed Selector -->
     <select id="feed-selector" onchange="setFeedType()">
         <option value="video">Default Video Feed</option>
         <option value="camera">Real Camera Feed</option>
@@ -179,7 +185,7 @@
     <!-- Lane 1 -->
     <div class="lane" id="lane1">
         <div class="traffic-light">
-            <div id="lane1-red" class="signal-light red"></div>
+            <div id="lane1-red" class="signal-light grey"></div>
             <div id="lane1-yellow" class="signal-light grey"></div>
             <div id="lane1-green" class="signal-light grey"></div>
             <div class="timer" id="lane1-remaining-time">0</div>
@@ -195,7 +201,7 @@
     <!-- Lane 2 -->
     <div class="lane" id="lane2">
         <div class="traffic-light">
-            <div id="lane2-red" class="signal-light red"></div>
+            <div id="lane2-red" class="signal-light grey"></div>
             <div id="lane2-yellow" class="signal-light grey"></div>
             <div id="lane2-green" class="signal-light grey"></div>
             <div class="timer" id="lane2-remaining-time">0</div>
@@ -211,7 +217,7 @@
     <!-- Lane 3 -->
     <div class="lane" id="lane3">
         <div class="traffic-light">
-            <div id="lane3-red" class="signal-light red"></div>
+            <div id="lane3-red" class="signal-light grey"></div>
             <div id="lane3-yellow" class="signal-light grey"></div>
             <div id="lane3-green" class="signal-light grey"></div>
             <div class="timer" id="lane3-remaining-time">0</div>
