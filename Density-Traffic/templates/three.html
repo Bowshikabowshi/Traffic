@@ -106,10 +106,24 @@
     <script>
         function updateData() {
             $.getJSON('/vehicle_data', function (data) {
-                // Update vehicle counts
-                $('#lane1-vehicles').text(data.lane1_vehicles);
-                $('#lane2-vehicles').text(data.lane2_vehicles);
-                $('#lane3-vehicles').text(data.lane3_vehicles);
+                // Update vehicle counts only for non-green lanes
+                if (data.lane1_signal !== 'green') {
+                    $('#lane1-vehicles').text(data.lane1_vehicles);
+                } else {
+                    $('#lane1-vehicles').text(''); // Clear the count for green lane
+                }
+
+                if (data.lane2_signal !== 'green') {
+                    $('#lane2-vehicles').text(data.lane2_vehicles);
+                } else {
+                    $('#lane2-vehicles').text(''); // Clear the count for green lane
+                }
+
+                if (data.lane3_signal !== 'green') {
+                    $('#lane3-vehicles').text(data.lane3_vehicles);
+                } else {
+                    $('#lane3-vehicles').text(''); // Clear the count for green lane
+                }
 
                 // Update signal colors and remaining green time
                 updateLaneStatus(1, data);
@@ -173,6 +187,7 @@
             setFeedType('video');
         });
     </script>
+
 </head>
 
 <body>
