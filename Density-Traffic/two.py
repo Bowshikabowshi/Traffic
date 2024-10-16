@@ -11,8 +11,8 @@ detection_model = YOLO("yolov8n.pt")
 
 # Video sources for the two lanes
 video_sources = {
-    "lane1": "Video/lane 1.mp4",
-    "lane2": "Video/lane 2.mp4"
+    "lane1": "Video/lane1.mp4",
+    "lane2": "Video/lane2.mp4"
 }
 
 # Real camera sources for the two lanes (update with actual camera streams)
@@ -47,12 +47,19 @@ def detect_vehicles(frame):
 def gen_frames(lane, feed_type):
     cap = cv2.VideoCapture(
         real_camera_sources[lane] if feed_type == "camera" else video_sources[lane])
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
-        vehicle_count, annotated_frame = detect_vehicles(frame)
-        vehicle_counts[lane] = vehicle_count
+
+        # Skip detection for the lane with a green signal
+        if signal_states[lane] == "green":
+            vehicle_counts[lane] = 0  # Ensure vehicle count is set to 0
+            annotated_frame = frame  # Use the original frame
+        else:
+            vehicle_count, annotated_frame = detect_vehicles(frame)
+            vehicle_counts[lane] = vehicle_count
 
         ret, buffer = cv2.imencode('.jpg', annotated_frame)
         frame = buffer.tobytes()

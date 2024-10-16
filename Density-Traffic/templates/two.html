@@ -100,9 +100,9 @@
 
         function updateData() {
             $.getJSON('/vehicle_data', function (data) {
-                // Update vehicle counts
-                $('#lane1-vehicles').text(data.lane1_vehicles);
-                $('#lane2-vehicles').text(data.lane2_vehicles);
+                // Update vehicle counts only if the signal is not green
+                $('#lane1-vehicles').text(data.lane1_signal === 'green' ? '0' : data.lane1_vehicles);
+                $('#lane2-vehicles').text(data.lane2_signal === 'green' ? '0' : data.lane2_vehicles);
 
                 // Update signal colors
                 $('#lane1-red').attr('class', 'signal-light ' + (data.lane1_signal === 'red' ? 'red' : 'grey'));
