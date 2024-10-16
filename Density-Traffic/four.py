@@ -66,7 +66,14 @@ def gen_frames(lane):
         ret, frame = cap.read()
         if not ret:
             break
-        vehicle_count, annotated_frame = detect_vehicles(frame)
+
+        if signal_states[lane] == "green":  # Skip detection if the signal is green
+            vehicle_count = 0
+            annotated_frame = frame  # No annotation, just pass the original frame
+        else:
+            vehicle_count, annotated_frame = detect_vehicles(
+                frame)  # Detect for other lanes
+
         vehicle_counts[lane] = vehicle_count
 
         ret, buffer = cv2.imencode('.jpg', annotated_frame)

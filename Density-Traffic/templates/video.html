@@ -106,12 +106,6 @@
     <script>
         function updateData() {
             $.getJSON('/vehicle_data', function (data) {
-                // Update vehicle counts
-                $('#lane1-vehicles').text(data.lane1_vehicles);
-                $('#lane2-vehicles').text(data.lane2_vehicles);
-                $('#lane3-vehicles').text(data.lane3_vehicles);
-                $('#lane4-vehicles').text(data.lane4_vehicles);
-
                 // Update signal colors and remaining green time for each lane
                 updateLaneStatus(1, data);
                 updateLaneStatus(2, data);
@@ -129,6 +123,13 @@
             // Update remaining green time for the lane
             $('#lane' + laneNumber + '-remaining-time').text(data['lane' + laneNumber + '_remaining_time']);
             $('#lane' + laneNumber + '-remaining-time').attr('class', data['lane' + laneNumber + '_signal'] === 'green' ? 'timer green-timer' : 'timer red-timer');
+
+            // Check if lane is green and set vehicles to 0 if it is green
+            if (data['lane' + laneNumber + '_signal'] === 'green') {
+                $('#lane' + laneNumber + '-vehicles').text(0); // Set vehicle count to 0 when green
+            } else {
+                $('#lane' + laneNumber + '-vehicles').text(data['lane' + laneNumber + '_vehicles']); // Show real vehicle count if not green
+            }
 
             // Update waiting time only for the next green light
             const nextGreenTime = data['lane' + laneNumber + '_next_green'];
