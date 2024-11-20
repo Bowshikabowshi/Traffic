@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4 Lane Video Feeds</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename = '/js/main.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <h1>Traffic Lane Video Feeds</h1>
+    <div class="video-container">
+        <div class="video">
+
+            <h2 class="laneNumber">Lane 1</h2>
+            <img src="/video_feed/Lane1" alt="Lane 1 Video Feed">
+            <div class="traffic-light">
+                <div id="lane1-vehicles" class="vehicle_count">Lane 1 Vehicles count:</div>
+                <div id="lane1-red" class="signal-light grey"></div>
+                <div id="lane1-yellow" class="signal-light grey"></div>
+                <div id="lane1-green" class="signal-light grey"></div>
+            </div>
+            <div id="lane1-timer" class="counter"></div>
+        </div>
+        <div class="video">
+            <h2 class="laneNumber">Lane 2</h2>
+            <img src="/video_feed/Lane2" alt="Lane 2 Video Feed">
+            <div class="traffic-light">
+                <div id="lane2-vehicles" class="vehicle_count">Lane 2 Vehicles count:</div>
+                <div id="lane2-red" class="signal-light grey"></div>
+                <div id="lane2-yellow" class="signal-light grey"></div>
+                <div id="lane2-green" class="signal-light grey"></div>
+            </div>
+            <div id="lane2-timer" class="counter"></div>
+        </div>
+        <div class="video">
+            <h2 class="laneNumber">Lane 3</h2>
+            <img src="/video_feed/Lane3" alt="Lane 3 Video Feed">
+            <div class="traffic-light">
+                <div id="lane3-vehicles" class="vehicle_count">Lane 3 Vehicles count:</div>
+                <div id="lane3-red" class="signal-light grey"></div>
+                <div id="lane3-yellow" class="signal-light grey"></div>
+                <div id="lane3-green" class="signal-light grey"></div>
+            </div>
+            <div id="lane3-timer" class="counter"></div>
+        </div>
+        <div class="video">
+            <h2 class="laneNumber">Lane 4</h2>
+            <img src="/video_feed/Lane4" alt="Lane 4 Video Feed">
+            <div class="traffic-light">
+                <div id="lane4-vehicles" class="vehicle_count">Lane 4 Vehicles count:</div>
+                <div id="lane4-red" class="signal-light grey"></div>
+                <div id="lane4-yellow" class="signal-light grey"></div>
+                <div id="lane4-green" class="signal-light grey"></div>
+            </div>
+            <div id="lane4-timer" class="counter"></div>
+        </div>
+    </div>
+</body>
+
+</html>
