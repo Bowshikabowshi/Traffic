@@ -140,3 +140,9 @@ let nav = document.querySelector("nav");
         nav.classList.remove("sticky");
       }
     }
+
+// Attach event listeners to filter inputs
+document.getElementById("lane-filter").addEventListener("change", displayImagesInModal);
+document.getElementById("date-filter").addEventListener("input", displayImagesInModal);
+document.getElementById("start-time-filter").addEventListener("input", displayImagesInModal);
+document.getElementById("end-time-filter").addEventListener("input", displayImagesInModal);

@@ -14,7 +14,20 @@ function updateLaneStatus(laneNumber, laneData) {
     setSignalStatus(laneNumber, signalStatus);
 
     $('#lane' + laneNumber + '-vehicles').html('Lane ' + laneNumber + ' Vehicles count: ' + laneData['vehicle_count']);
-    $('#lane' + laneNumber + '-timer').html('Lane ' + laneNumber + ' Time: ' + greenTime);
+    if(greenTime>5){
+        $('#lane' + laneNumber + '-timer').attr('class','green-timer');
+    }else if(greenTime >0 &&greenTime <=5)
+    {
+        $('#lane' + laneNumber + '-timer').attr('class','yellow-timer');
+    }
+    else
+    {
+    
+        $('#lane' + laneNumber + '-timer').attr('class','red-timer');
+
+    }
+    $('#lane' + laneNumber + '-timer').html(greenTime);
+
 }
 
 function setSignalStatus(laneNumber, status) {
@@ -32,6 +45,3 @@ function setSignalStatus(laneNumber, status) {
 }
 
 setInterval(updateData, 1000);
-
-
-

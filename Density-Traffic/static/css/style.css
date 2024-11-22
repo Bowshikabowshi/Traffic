@@ -40,6 +40,7 @@ h1 {
     height: 50px;
     border-radius: 50%;
     margin: 10px 0;
+    border: 5px solid black;
 }
 
 .green {
@@ -79,4 +80,17 @@ h1 {
     justify-content: flex-start;
     align-items: center;
     white-space: nowrap;
+    font-size: 80px;
+}
+.green-timer{
+    color: green;
+    font-size: 90px;
+}
+.yellow-timer{
+    color: yellow;
+    font-size: 90px;
+}
+.red-timer{
+    color: red;
+    font-size: 90px;
 }

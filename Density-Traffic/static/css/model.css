@@ -155,7 +155,7 @@ nav{
   }
   nav.sticky{
     padding: 15px 20px;
-    background: #4070f4;
+    background: #ffffff;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
   }
   nav .nav-content{
@@ -168,10 +168,10 @@ nav{
   }
   nav .logo a{
     font-size: 35px;
-    color: #4070f4;
+    color: #000000;
   }
   nav.sticky .logo a{
-    color: #fff;
+    color: #000000;
   }
   .nav-content .nav-links{
     display: flex;
@@ -190,10 +190,10 @@ nav{
     transition: all 0.3s ease;
   }
    .nav-links li a:hover{
-     color: #4070f4;
+     color: #000000;
    }
    nav.sticky .nav-links li a{
-     color: #fff;
+     color: #000000;
      transition: all 0.4s ease;
   }
    nav.sticky .nav-links li a:hover{
