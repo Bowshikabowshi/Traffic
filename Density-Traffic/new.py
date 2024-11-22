@@ -14,32 +14,15 @@ video_sources = {
     "Lane3": "Video/lane2.mp4",
     "Lane4": "Video/lane1.mp4"
 }
-vehicle_counts = {
-    "Lane1": 0,
-    "Lane2": 0,
-    "Lane3": 0,
-    "Lane4": 0
-}
 
-green_times = {
-    "Lane1": 0,
-    "Lane2": 0,
-    "Lane3": 0,
-    "Lane4": 0
-}
-lane_states = {
-    "Lane1": False,
-    "Lane2": False,
-    "Lane3": False,
-    "Lane4": False
-}
+vehicle_counts = {lane: 0 for lane in video_sources}
+green_times = {lane: 0 for lane in video_sources}
+lane_states = {lane: False for lane in video_sources}
 
 vehicle_class_ids = [2, 3, 5, 7]
 
-# Flask app
 app = Flask(__name__)
 
-# Global video captures for each lane
 video_captures = {lane: cv2.VideoCapture(
     path) for lane, path in video_sources.items()}
 
@@ -81,8 +64,6 @@ def process_lane(lane, video_path):
         return 0
 
     vehicle_count, annotated_frame = detect_vehicles_in_frame(frame)
-    print(f"{lane}: Vehicle count = {vehicle_count}")
-
     vehicle_counts[lane] = vehicle_count
 
     save_dir = "detected_images"
@@ -92,7 +73,6 @@ def process_lane(lane, video_path):
     filename = f"{lane}_{timestamp}_{vehicle_count}.jpg"
     save_path = os.path.join(save_dir, filename)
     cv2.imwrite(save_path, annotated_frame)
-    print(f"{lane}: Detection image saved as {save_path}")
 
     cap.release()
 
@@ -109,11 +89,13 @@ def main_detection():
         for lane, video_path in video_sources.items():
             green_time = process_lane(lane, video_path)
             update_lane_states(lane)
-            print(f"{lane}: Green light ON for {green_time} seconds.")
-            time.sleep(green_time)
-            update_lane_states(None)
-            print(f"{lane}: Yellow light ON for 5 seconds.")
+            print(f"{lane}: Green light ON for {
+                  green_time} seconds. Lane states: {lane_states}")
+            time.sleep(green_time - 5)
+            print(f"{lane}: Yellow light ON for 5 seconds. Lane states: {
+                  lane_states}")
             time.sleep(5)
+            update_lane_states(None)
 
 
 def generate_video_feed(lane):
@@ -160,29 +142,29 @@ def video_feed(lane):
 
 @app.route('/vehicle_data')
 def vehicle_data():
+    """
+    Return the vehicle counts, green times, and lane states for all lanes in JSON format.
+    """
+    lane_data = {}
+    for lane in video_sources:
+        if green_times[lane] > 0:
+            green_times[lane] -= 1
 
-    return jsonify({
-        'Lane1': {
-            'vehicle_count': vehicle_counts["Lane1"],
-            'green_time': green_times["Lane1"],
-            'is_active': lane_states["Lane1"]
-        },
-        'Lane2': {
-            'vehicle_count': vehicle_counts["Lane2"],
-            'green_time': green_times["Lane2"],
-            'is_active': lane_states["Lane2"]
-        },
-        'Lane3': {
-            'vehicle_count': vehicle_counts["Lane3"],
-            'green_time': green_times["Lane3"],
-            'is_active': lane_states["Lane3"]
-        },
-        'Lane4': {
-            'vehicle_count': vehicle_counts["Lane4"],
-            'green_time': green_times["Lane4"],
-            'is_active': lane_states["Lane4"]
-        },
-    })
+        if green_times[lane] > 5:
+            signal_status = 'green'
+        elif green_times[lane] <= 5 and green_times[lane] > 0:
+            signal_status = 'yellow'
+        else:
+            signal_status = 'red'
+
+        lane_data[lane] = {
+            'vehicle_count': vehicle_counts[lane],
+            'green_time': green_times[lane],
+            'is_active': lane_states[lane],
+            'signal_status': signal_status
+        }
+
+    return jsonify(lane_data)
 
 
 if __name__ == "__main__":
