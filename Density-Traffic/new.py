@@ -66,7 +66,7 @@ def process_lane(lane, video_path):
     vehicle_count, annotated_frame = detect_vehicles_in_frame(frame)
     vehicle_counts[lane] = vehicle_count
 
-    save_dir = "detected_images"
+    save_dir = "static/detected_images"
     os.makedirs(save_dir, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -165,6 +165,17 @@ def vehicle_data():
         }
 
     return jsonify(lane_data)
+
+
+@app.route('/get_image_files')
+def get_image_files():
+    """
+    Return a list of image filenames in the detected_images folder.
+    """
+    image_folder = 'static/detected_images'  # Folder where images are saved
+    image_files = [f for f in os.listdir(
+        image_folder) if f.endswith('.jpg')]  # List all jpg files
+    return jsonify(image_files)
 
 
 if __name__ == "__main__":

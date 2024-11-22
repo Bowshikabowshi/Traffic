@@ -1,86 +1,102 @@
- // Function to fetch image filenames from the server
- function fetchImageFiles() {
-    return fetch('/get_image_files')
+function fetchImageFiles() {
+    return fetch('/get_image_files') 
         .then(response => response.json())
         .catch(error => console.error("Error fetching image files:", error));
 }
 
-// Function to parse filename and extract details
 function extractDetailsFromFilename(filename) {
     const regex = /Lane(\d+)_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})_(\d+)\.jpg/;
     const match = filename.match(regex);
     if (match) {
+        const fullTimestamp = match[2]; 
+        const [date, time] = fullTimestamp.split("_");
         return {
-            lane: match[1], // Lane number
-            timestamp: match[2], // Timestamp (for display)
-            vehicleCount: match[3], // Vehicle count
+            lane: `Lane ${match[1]}`,
+            date, 
+            time, 
+            timestamp: fullTimestamp,
+            vehicleCount: match[3],
+            filename,
         };
     }
     return null;
 }
 
-// Function to display images in the modal as a table
 function displayImagesInModal() {
-    // Fetch image files from the server
     fetchImageFiles().then(imageFiles => {
-        // Get the table body
+        const laneFilter = document.getElementById("lane-filter").value;
+        const dateFilter = document.getElementById("date-filter").value;
+        const startTimeFilter = document.getElementById("start-time-filter").value;
+        const endTimeFilter = document.getElementById("end-time-filter").value;
+
         const tbody = document.getElementById("image-details-table").getElementsByTagName('tbody')[0];
+        tbody.innerHTML = ""; 
 
-        // Clear previous content
-        tbody.innerHTML = "";
-
-        // Loop through each image and create table rows
         imageFiles.forEach((filename) => {
             const details = extractDetailsFromFilename(filename);
             if (details) {
-                const { lane, timestamp, vehicleCount } = details;
-                const greenTime = Math.max(vehicleCount, 10); // Default green time based on vehicle count
+                const { lane, date, time, timestamp, vehicleCount } = details;
+                const greenTime = Math.max(vehicleCount, 10);
 
-                // Create a new row
-                const row = document.createElement("tr");
+                const matchesLane = laneFilter === "all" || lane === laneFilter;
+                const matchesDate = !dateFilter || date === dateFilter;
 
-                // Lane column
-                const laneCell = document.createElement("td");
-                laneCell.textContent = `Lane ${lane}`;
-                row.appendChild(laneCell);
+                const matchesTime =
+                    (!startTimeFilter || time >= startTimeFilter) &&
+                    (!endTimeFilter || time <= endTimeFilter);
 
-                // Timestamp column
-                const timestampCell = document.createElement("td");
-                timestampCell.textContent = timestamp;
-                row.appendChild(timestampCell);
+                if (matchesLane && matchesDate && matchesTime) {
+                    const row = document.createElement("tr");
 
-                // Vehicle Count column
-                const vehicleCountCell = document.createElement("td");
-                vehicleCountCell.textContent = vehicleCount;
-                row.appendChild(vehicleCountCell);
+                    const laneCell = document.createElement("td");
+                    laneCell.textContent = lane;
+                    row.appendChild(laneCell);
 
-                // Green Time column
-                const greenTimeCell = document.createElement("td");
-                greenTimeCell.textContent = `${greenTime} seconds`;
-                row.appendChild(greenTimeCell);
+                    const timestampCell = document.createElement("td");
+                    timestampCell.textContent = timestamp.replace("_", " "); 
+                    row.appendChild(timestampCell);
 
-                // Image column
-                const imageCell = document.createElement("td");
-                const img = document.createElement("img");
-                img.src = `detected_images/${filename}`;
-                img.alt = `Lane ${lane} Image`;
-                imageCell.appendChild(img);
-                row.appendChild(imageCell);
+                    const vehicleCountCell = document.createElement("td");
+                    vehicleCountCell.textContent = vehicleCount;
+                    row.appendChild(vehicleCountCell);
 
-                // Append the row to the table body
-                tbody.appendChild(row);
+                    const greenTimeCell = document.createElement("td");
+                    greenTimeCell.textContent = `${greenTime} seconds`;
+                    row.appendChild(greenTimeCell);
+
+                    const imageCell = document.createElement("td");
+                    const img = document.createElement("img");
+                    img.src = `/static/detected_images/${filename}`;
+                    img.alt = `${lane} Image`;
+                    img.style.maxWidth = "100px";
+                    img.style.height = "auto";
+                    img.style.cursor = "pointer";
+                    img.onclick = function () {
+                        const lightbox = document.getElementById("lightbox");
+                        const lightboxImg = document.getElementById("lightbox-img");
+                        lightboxImg.src = img.src;
+                        lightbox.style.display = "block";
+                    };
+                    imageCell.appendChild(img);
+                    row.appendChild(imageCell);
+
+                    tbody.appendChild(row);
+                }
             }
         });
     });
 }
 
-// Modal functionality
+
+document.getElementById("search-button").onclick = function () {
+    displayImagesInModal();
+};
+
 var modal = document.getElementById("myModal");
 var btn = document.getElementById("myBtn");
 var span = document.getElementsByClassName("close")[0];
 
 btn.onclick = function () {
-    // Populate the modal with images and details before opening
     displayImagesInModal();
     modal.style.display = "block";
 };
@@ -95,4 +111,32 @@ window.onclick = function (event) {
     }
 };
 
-setInterval(updateData, 1000);
+document.getElementById("lightbox-close").onclick = function () {
+    document.getElementById("lightbox").style.display = "none";
+};
+
+document.getElementById("lightbox").onclick = function (event) {
+    if (event.target === this) {
+        this.style.display = "none";
+    }
+};
+function resetFilters() {
+    document.getElementById("lane-filter").value = "all";
+    document.getElementById("date-filter").value = "";
+    document.getElementById("start-time-filter").value = "";
+    document.getElementById("end-time-filter").value = "";
+
+    displayImagesInModal();
+}
+
+document.getElementById("reset-button").onclick = resetFilters;
+
+
+let nav = document.querySelector("nav");
+    window.onscroll = function() {
+      if(document.documentElement.scrollTop > 20){
+        nav.classList.add("sticky");
+      }else {
+        nav.classList.remove("sticky");
+      }
+    }

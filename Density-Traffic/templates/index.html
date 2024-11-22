@@ -6,12 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>4 Lane Video Feeds</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/model.css') }}">
     <script type="text/javascript" src="{{ url_for('static', filename = '/js/main.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
-    <h1>Traffic Lane Video Feeds</h1>
+    <nav>
+        <div class="nav-content">
+            <div class="logo">
+                <a href="#">Density Traffic Controll.</a>
+            </div>
+            <ul class="nav-links">
+                <li id="myBtn" style="cursor: pointer;"><a>View Details</a></li>
+            </ul>
+        </div>
+    </nav>
+    <p style="padding-top: 90px;"></p>
     <div class="video-container">
         <div class="video">
 
@@ -24,6 +35,48 @@
                 <div id="lane1-green" class="signal-light grey"></div>
             </div>
             <div id="lane1-timer" class="counter"></div>
+            <!--  <button id="myBtn">View Details</button> -->
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+
+                    <div class="filter-section">
+                        <select id="lane-filter">
+                            <option value="all">All Lanes</option>
+                            <option value="Lane 1">Lane 1</option>
+                            <option value="Lane 2">Lane 2</option>
+                            <option value="Lane 3">Lane 3</option>
+                            <option value="Lane 4">Lane 4</option>
+                        </select>
+                        <input type="date" id="date-filter">
+                        <label for="start-time-filter">From:</label>
+                        <input type="time" id="start-time-filter" step="60">
+                        <label for="end-time-filter">To:</label>
+                        <input type="time" id="end-time-filter" step="60">
+                        <button id="search-button">Search</button>
+                        <button id="reset-button">Reset</button>
+                    </div>
+                    <table id="image-details-table">
+                        <thead>
+                            <tr>
+                                <th>Lane</th>
+                                <th>Timestamp</th>
+                                <th>Vehicle Count</th>
+                                <th>Green Time</th>
+                                <th>Image</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="lightbox" class="lightbox">
+                <span class="close" id="lightbox-close">&times;</span>
+                <img class="lightbox-content" id="lightbox-img" alt="Lightbox Image">
+            </div>
         </div>
         <div class="video">
             <h2 class="laneNumber">Lane 2</h2>
@@ -59,6 +112,8 @@
             <div id="lane4-timer" class="counter"></div>
         </div>
     </div>
+    <script type="text/javascript" src="{{ url_for('static', filename = '/js/popup.js') }}"></script>
+
 </body>
 
 </html>
