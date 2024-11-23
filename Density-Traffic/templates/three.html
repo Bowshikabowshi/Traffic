@@ -4,246 +4,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Traffic Management System</title>
-    <style>
-        body {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            align-items: flex-start;
-            background-color: #333;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .lane {
-            margin: 20px;
-            text-align: center;
-            width: 400px;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-        }
-
-        .lane img {
-            border: 5px solid #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            max-width: 100%;
-            height: auto;
-        }
-
-        .traffic-light {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-right: 20px;
-        }
-
-        .signal-light {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin: 10px 0;
-        }
-
-        .green {
-            background-color: green;
-        }
-
-        .red {
-            background-color: red;
-        }
-
-        .yellow {
-            background-color: yellow;
-        }
-
-        .grey {
-            background-color: grey;
-        }
-
-        h2 {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-        }
-
-        .timer {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .green-timer {
-            color: green;
-        }
-
-        .red-timer {
-            color: red;
-        }
-
-        .waiting-time {
-            color: #ffcc00;
-            font-size: 1.2em;
-            margin-top: 5px;
-        }
-
-        .button-container {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-    </style>
+    <title>4 Lane Video Feeds</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/model.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        function updateData() {
-            $.getJSON('/vehicle_data', function (data) {
-                // Update vehicle counts only for non-green lanes
-                if (data.lane1_signal !== 'green') {
-                    $('#lane1-vehicles').text(data.lane1_vehicles);
-                } else {
-                    $('#lane1-vehicles').text(''); // Clear the count for green lane
-                }
-
-                if (data.lane2_signal !== 'green') {
-                    $('#lane2-vehicles').text(data.lane2_vehicles);
-                } else {
-                    $('#lane2-vehicles').text(''); // Clear the count for green lane
-                }
-
-                if (data.lane3_signal !== 'green') {
-                    $('#lane3-vehicles').text(data.lane3_vehicles);
-                } else {
-                    $('#lane3-vehicles').text(''); // Clear the count for green lane
-                }
-
-                // Update signal colors and remaining green time
-                updateLaneStatus(1, data);
-                updateLaneStatus(2, data);
-                updateLaneStatus(3, data);
-
-                // Hide waiting time for all lanes initially
-                hideAllWaitingTimes();
-
-                // Show only next green signal waiting time
-                const nextGreenLane = getNextLane(data);
-                if (nextGreenLane !== null) {
-                    const waitingTime = data[`lane${nextGreenLane}_waiting_time`];
-                    $(`#lane${nextGreenLane}-waiting-time`).text(waitingTime + 's');
-                }
-            });
-        }
-
-        function updateLaneStatus(laneNumber, data) {
-            // Update signal colors
-            $('#lane' + laneNumber + '-red').attr('class', 'signal-light ' + (data['lane' + laneNumber + '_signal'] === 'red' ? 'red' : 'grey'));
-            $('#lane' + laneNumber + '-yellow').attr('class', 'signal-light ' + (data['lane' + laneNumber + '_signal'] === 'yellow' ? 'yellow' : 'grey'));
-            $('#lane' + laneNumber + '-green').attr('class', 'signal-light ' + (data['lane' + laneNumber + '_signal'] === 'green' ? 'green' : 'grey'));
-
-            // Update remaining green time for the lane
-            $('#lane' + laneNumber + '-remaining-time').text(data['lane' + laneNumber + '_remaining_time']);
-            $('#lane' + laneNumber + '-remaining-time').attr('class', data['lane' + laneNumber + '_signal'] === 'green' ? 'timer green-timer' : 'timer red-timer');
-        }
-
-        function hideAllWaitingTimes() {
-            $('.waiting-time').text(''); // Clear waiting times for all lanes
-        }
-
-        function getNextLane(data) {
-            // Determine which lane is next for green
-            for (let i = 1; i <= 3; i++) {
-                if (data['lane' + i + '_signal'] === 'green') {
-                    return (i % 3) + 1; // Return the next lane (wrap around to lane 1 after lane 3)
-                }
-            }
-            return null; // If no lane is green
-        }
-
-        function setFeedType() {
-            var type = $('#feed-selector').val(); // Get the selected value from the dropdown
-            $.getJSON('/set_feed_type/' + type, function () {
-                // Refresh the video feeds
-                $('#lane1 img').attr('src', '/video_feed/lane1?' + new Date().getTime());
-                $('#lane2 img').attr('src', '/video_feed/lane2?' + new Date().getTime());
-                $('#lane3 img').attr('src', '/video_feed/lane3?' + new Date().getTime());
-            });
-        }
-
-        // Periodically fetch new data every second
-        setInterval(updateData, 1000);
-
-        // Fetch data when the page loads
-        $(document).ready(function () {
-            updateData();
-            // Set initial feed
-            setFeedType('video');
-        });
-    </script>
-
 </head>
 
 <body>
-    <!-- Feed Selector -->
-    <select id="feed-selector" onchange="setFeedType()">
-        <option value="video">Default Video Feed</option>
-        <option value="camera">Real Camera Feed</option>
-    </select>
-
-    <!-- Lane 1 -->
-    <div class="lane" id="lane1">
-        <div class="traffic-light">
-            <div id="lane1-red" class="signal-light grey"></div>
-            <div id="lane1-yellow" class="signal-light grey"></div>
-            <div id="lane1-green" class="signal-light grey"></div>
-            <div class="timer" id="lane1-remaining-time">0</div>
-            <div class="waiting-time" id="lane1-waiting-time">0s</div>
+    <nav>
+        <div class="nav-content">
+            <div class="logo">
+                <a href="#">Density Traffic Controll.</a>
+            </div>
+            <ul class="nav-links">
+                <li id="myBtn" style="cursor: pointer;"><a>View Details</a></li>
+            </ul>
         </div>
-        <div>
-            <h2>Lane 1</h2>
-            <img src="/video_feed/lane1" alt="Lane 1 Video">
-            <p>Vehicles: <span id="lane1-vehicles">0</span></p>
+    </nav>
+    <p style="padding-top: 90px;"></p>
+    <div class="video-container">
+        <div class="video">
+
+            <h2 class="laneNumber">Lane 1</h2>
+            <img src="/video_feed/Lane1" alt="Lane 1 Video Feed">
+            <div class="traffic-light">
+                <div id="lane1-vehicles" class="vehicle_count">Lane 1 Vehicles count:</div>
+                <div id="lane1-red" class="signal-light grey"></div>
+                <div id="lane1-yellow" class="signal-light grey"></div>
+                <div id="lane1-green" class="signal-light grey"></div>
+            </div>
+            <div id="lane1-timer" class="counter"></div>
+            <div id="lane1-nextGreen" class="counter"></div>
+            <!--  <button id="myBtn">View Details</button> -->
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+
+                    <div class="filter-section">
+                        <select id="lane-filter">
+                            <option value="all">All Lanes</option>
+                            <option value="Lane 1">Lane 1</option>
+                            <option value="Lane 2">Lane 2</option>
+                            <option value="Lane 3">Lane 3</option>
+                        </select>
+                        <input type="date" id="date-filter">
+                        <label for="start-time-filter">From:</label>
+                        <input type="time" id="start-time-filter" step="60">
+                        <label for="end-time-filter">To:</label>
+                        <input type="time" id="end-time-filter" step="60">
+                        <button id="search-button">Search</button>
+                        <button id="reset-button">Reset</button>
+                    </div>
+                    <table id="image-details-table">
+                        <thead>
+                            <tr>
+                                <th>Lane</th>
+                                <th>Timestamp</th>
+                                <th>Vehicle Count</th>
+                                <th>Green Time</th>
+                                <th>Image</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="lightbox" class="lightbox">
+                <span class="close" id="lightbox-close">&times;</span>
+                <img class="lightbox-content" id="lightbox-img" alt="Lightbox Image">
+            </div>
+        </div>
+        <div class="video">
+            <h2 class="laneNumber">Lane 2</h2>
+            <img src="/video_feed/Lane2" alt="Lane 2 Video Feed">
+            <div class="traffic-light">
+                <div id="lane2-vehicles" class="vehicle_count">Lane 2 Vehicles count:</div>
+                <div id="lane2-red" class="signal-light grey"></div>
+                <div id="lane2-yellow" class="signal-light grey"></div>
+                <div id="lane2-green" class="signal-light grey"></div>
+            </div>
+            <div id="lane2-timer" class="counter"></div>
+            <div id="lane2-nextGreen" class="counter"></div>
+        </div>
+        <div class="video">
+            <h2 class="laneNumber">Lane 3</h2>
+            <img src="/video_feed/Lane3" alt="Lane 3 Video Feed">
+            <div class="traffic-light">
+                <div id="lane3-vehicles" class="vehicle_count">Lane 3 Vehicles count:</div>
+                <div id="lane3-red" class="signal-light grey"></div>
+                <div id="lane3-yellow" class="signal-light grey"></div>
+                <div id="lane3-green" class="signal-light grey"></div>
+            </div>
+            <div id="lane3-timer" class="counter"></div>
+            <div id="lane3-nextGreen" class="counter"></div>
         </div>
     </div>
+    <script type="text/javascript" src="{{ url_for('static', filename = '/js/popup.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename = 'js/mainThree.js') }}"></script>
 
-    <!-- Lane 2 -->
-    <div class="lane" id="lane2">
-        <div class="traffic-light">
-            <div id="lane2-red" class="signal-light grey"></div>
-            <div id="lane2-yellow" class="signal-light grey"></div>
-            <div id="lane2-green" class="signal-light grey"></div>
-            <div class="timer" id="lane2-remaining-time">0</div>
-            <div class="waiting-time" id="lane2-waiting-time">0s</div>
-        </div>
-        <div>
-            <h2>Lane 2</h2>
-            <img src="/video_feed/lane2" alt="Lane 2 Video">
-            <p>Vehicles: <span id="lane2-vehicles">0</span></p>
-        </div>
-    </div>
-
-    <!-- Lane 3 -->
-    <div class="lane" id="lane3">
-        <div class="traffic-light">
-            <div id="lane3-red" class="signal-light grey"></div>
-            <div id="lane3-yellow" class="signal-light grey"></div>
-            <div id="lane3-green" class="signal-light grey"></div>
-            <div class="timer" id="lane3-remaining-time">0</div>
-            <div class="waiting-time" id="lane3-waiting-time">0s</div>
-        </div>
-        <div>
-            <h2>Lane 3</h2>
-            <img src="/video_feed/lane3" alt="Lane 3 Video">
-            <p>Vehicles: <span id="lane3-vehicles">0</span></p>
-        </div>
-    </div>
 </body>
 
 </html>
