@@ -44,7 +44,7 @@ function updateActiveLane(activeLane, vehicleCount, greenTime, signalStatus) {
         $('#lane' + laneNumber + '-timer').attr('class', 'red-timer');
     }
     $('#lane' + laneNumber + '-timer').html(greenTime);
-    if(greenTime>0)
+    if(greenTime>1)
     {
     $('#lane' + nextgreen + '-nextGreen').html(greenTime);
     $('#lane' + nextgreen + '-nextGreen').attr('class', 'red-timer');
