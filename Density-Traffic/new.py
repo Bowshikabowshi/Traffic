@@ -19,7 +19,7 @@ vehicle_counts = {lane: 0 for lane in video_sources}
 green_times = {lane: 0 for lane in video_sources}
 lane_states = {lane: False for lane in video_sources}
 
-vehicle_class_ids = [2, 3, 5, 7]
+vehicle_class_ids = [0, 1, 2, 3]
 
 app = Flask(__name__)
 
@@ -124,6 +124,24 @@ def generate_video_feed(lane):
         time.sleep(frame_delay)
 
 
+def green_time_countdown():
+    """
+    Background thread to decrement green time for the active lane only.
+    Runs every second.
+    """
+    while True:
+        active_lane = None
+        for lane, state in lane_states.items():
+            if state:
+                active_lane = lane
+                break
+
+        if active_lane and green_times[active_lane] > 0:
+            green_times[active_lane] -= 1
+
+        time.sleep(1)
+
+
 @app.route("/")
 def index():
     """
@@ -143,26 +161,32 @@ def video_feed(lane):
 @app.route('/vehicle_data')
 def vehicle_data():
     """
-    Return the vehicle counts, green times, and lane states for all lanes in JSON format.
+    Return the vehicle data (vehicle count, green time, signal status)
+    for the active lane only.
     """
-    lane_data = {}
-    for lane in video_sources:
-        if green_times[lane] > 0:
-            green_times[lane] -= 1
+    active_lane = None
 
-        if green_times[lane] > 5:
-            signal_status = 'green'
-        elif green_times[lane] <= 5 and green_times[lane] > 0:
-            signal_status = 'yellow'
-        else:
-            signal_status = 'red'
+    for lane, state in lane_states.items():
+        if state:
+            active_lane = lane
+            break
 
-        lane_data[lane] = {
-            'vehicle_count': vehicle_counts[lane],
-            'green_time': green_times[lane],
-            'is_active': lane_states[lane],
-            'signal_status': signal_status
-        }
+    if not active_lane:
+        return jsonify({"message": "No active lane"})
+
+    signal_status = (
+        'green' if green_times[active_lane] > 5 else
+        'yellow' if green_times[active_lane] > 0 else
+        'red'
+    )
+
+    lane_data = {
+        'lane': active_lane,
+        'vehicle_count': vehicle_counts[active_lane],
+        'green_time': green_times[active_lane],
+        'is_active': True,
+        'signal_status': signal_status
+    }
 
     return jsonify(lane_data)
 
@@ -172,14 +196,17 @@ def get_image_files():
     """
     Return a list of image filenames in the detected_images folder.
     """
-    image_folder = 'static/detected_images'  # Folder where images are saved
+    image_folder = 'static/detected_images'
     image_files = [f for f in os.listdir(
-        image_folder) if f.endswith('.jpg')]  # List all jpg files
+        image_folder) if f.endswith('.jpg')]
     return jsonify(image_files)
 
 
 if __name__ == "__main__":
     detection_thread = threading.Thread(target=main_detection, daemon=True)
     detection_thread.start()
+    countdown_thread = threading.Thread(
+        target=green_time_countdown, daemon=True)
+    countdown_thread.start()
 
     app.run(host="0.0.0.0", port=8800)
