@@ -199,3 +199,20 @@ nav{
    nav.sticky .nav-links li a:hover{
     color: #0E2431;
   }
+
+  #start-time-filter{
+    cursor: pointer;
+  }
+
+  #end-time-filter
+  {
+    cursor: pointer;
+  }
+
+  #date-filter{
+    cursor: pointer;
+  }
+
+  #lane-filter{
+    cursor: pointer;
+  }
