@@ -5,8 +5,10 @@ from datetime import datetime
 from flask import Flask, Response, render_template, jsonify
 from ultralytics import YOLO
 import threading
+from threading import Lock
 
 model = YOLO("best1.pt")
+shared_resource_lock = Lock()
 
 video_sources = {
     "Lane1": "Video/lane4.mp4",
@@ -25,6 +27,12 @@ app = Flask(__name__)
 
 video_captures = {lane: cv2.VideoCapture(
     path) for lane, path in video_sources.items()}
+
+
+def release_all_captures():
+    for cap in video_captures.values():
+        if cap.isOpened():
+            cap.release()
 
 
 def update_lane_states(active_lane):
@@ -49,10 +57,9 @@ def detect_vehicles_in_frame(frame):
 
 
 def process_lane(lane, video_path):
-    """
-    Process a single lane: capture one frame, detect vehicles, and calculate green light time.
-    """
-    cap = cv2.VideoCapture(video_path)
+    with shared_resource_lock:
+        cap = cv2.VideoCapture(video_path)
+
     if not cap.isOpened():
         print(f"Error: Cannot open video for {lane}.")
         return 0
@@ -99,29 +106,33 @@ def main_detection():
 
 
 def generate_video_feed(lane):
-    """
-    Generate video feed for the given lane at the original frame rate.
-    """
-    cap = video_captures[lane]
-    if not cap.isOpened():
+    cap = video_captures.get(lane)
+    if not cap or not cap.isOpened():
+        print(f"Error: Video capture for lane '{lane}' is not opened.")
         return
 
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    frame_delay = 1 / fps if fps > 0 else 0.03
+    try:
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        frame_delay = 1 / fps if fps > 0 else 0.03
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-            continue
+        while True:
+            with shared_resource_lock:
+                ret, frame = cap.read()
 
-        _, buffer = cv2.imencode(".jpg", frame)
-        frame_bytes = buffer.tobytes()
+            if not ret:
+                with shared_resource_lock:
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                continue
 
-        yield (b"--frame\r\n"
-               b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n")
+            _, buffer = cv2.imencode(".jpg", frame)
+            frame_bytes = buffer.tobytes()
 
-        time.sleep(frame_delay)
+            yield (b"--frame\r\n"
+                   b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n")
+
+            time.sleep(frame_delay)
+    except GeneratorExit:
+        print(f"Video feed for lane '{lane}' closed by the client.")
 
 
 def green_time_countdown():
@@ -203,10 +214,14 @@ def get_image_files():
 
 
 if __name__ == "__main__":
-    detection_thread = threading.Thread(target=main_detection, daemon=True)
-    detection_thread.start()
-    countdown_thread = threading.Thread(
-        target=green_time_countdown, daemon=True)
-    countdown_thread.start()
+    try:
+        detection_thread = threading.Thread(target=main_detection, daemon=True)
+        detection_thread.start()
 
-    app.run(host="0.0.0.0", port=8800)
+        countdown_thread = threading.Thread(
+            target=green_time_countdown, daemon=True)
+        countdown_thread.start()
+
+        app.run(host="0.0.0.0", port=8800)
+    finally:
+        release_all_captures()
