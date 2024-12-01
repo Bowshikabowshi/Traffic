@@ -36,14 +36,25 @@ function updateActiveLane(activeLane, vehicleCount, greenTime, signalStatus) {
     } else {
         console.log("Unknown Lane");
     }
-    if (greenTime > 5) {
-        $('#lane' + laneNumber + '-timer').attr('class', 'green-timer');
-    } else if (greenTime > 0 && greenTime <= 5) {
-        $('#lane' + laneNumber + '-timer').attr('class', 'yellow-timer');
-    } else {
-        $('#lane' + laneNumber + '-timer').attr('class', 'red-timer');
+   if (greenTime > 5) {
+    $('#lane' + laneNumber + '-timer').html(greenTime).attr('class', 'green-timer');
+    if (greenTime === 6) {
+        $('#lane' + laneNumber + '-timer').html('');
     }
-    $('#lane' + laneNumber + '-timer').html(greenTime);
+    $('#lane' + laneNumber + '-timer-yellow').html('').attr('class', '');
+} 
+else if (greenTime > 0 && greenTime <= 5) {
+    $('#lane' + laneNumber + '-timer-yellow').html(greenTime).attr('class', 'yellow-timer');
+    if (greenTime === 1) {
+        $('#lane' + laneNumber + '-timer-yellow').html('').attr('class', '');
+    }
+    $('#lane' + laneNumber + '-timer').html('').attr('class', '');
+} 
+else {
+    $('#lane' + laneNumber + '-timer').attr('class', 'red-timer').html('');
+    $('#lane' + laneNumber + '-timer-yellow').html('');
+}
+    
     if(greenTime>1)
     {
     $('#lane' + nextgreen + '-nextGreen').html(greenTime);
@@ -82,6 +93,8 @@ function clearInactiveLanes(activeLaneNumber) {
         }
     }
 }
+
+
 
 function setSignalStatus(laneNumber, status) {
     $('#lane' + laneNumber + '-red').attr('class', 'signal-light grey');

@@ -22,99 +22,121 @@
             </ul>
         </div>
     </nav>
-    <p style="padding-top: 90px;"></p>
+    <p style="padding-top: 10px;"></p>
     <div class="video-container">
-        <div class="video">
-
+        <div>
             <h2 class="laneNumber">Lane 1</h2>
-            <img src="/video_feed/Lane1" alt="Lane 1 Video Feed">
-            <div class="traffic-light">
-                <div id="lane1-vehicles" class="vehicle_count">Lane 1 Vehicles count:</div>
-                <div id="lane1-red" class="signal-light grey"></div>
-                <div id="lane1-yellow" class="signal-light grey"></div>
-                <div id="lane1-green" class="signal-light grey"></div>
-            </div>
-            <div id="lane1-timer" class="counter"></div>
-            <div id="lane1-nextGreen" class="counter"></div>
-            <!--  <button id="myBtn">View Details</button> -->
-            <div id="myModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-
-                    <div class="filter-section">
-                        <select id="lane-filter">
-                            <option value="all">All Lanes</option>
-                            <option value="Lane 1">Lane 1</option>
-                            <option value="Lane 2">Lane 2</option>
-                            <option value="Lane 3">Lane 3</option>
-                            <option value="Lane 4">Lane 4</option>
-                        </select>
-                        <input type="date" id="date-filter">
-                        <label for="start-time-filter">From:</label>
-                        <input type="time" id="start-time-filter" step="60">
-                        <label for="end-time-filter">To:</label>
-                        <input type="time" id="end-time-filter" step="60">
-                        <button id="search-button">Search</button>
-                        <button id="reset-button">Reset</button>
+            <div class="video">
+                <img src="/video_feed/Lane1" alt="Lane 1 Video Feed">
+                <div class="traffic-light">
+                    <div id="lane1-red" class="signal-light grey">
+                        <div id="lane1-nextGreen" class="counter"></div>
                     </div>
-                    <table id="image-details-table">
-                        <thead>
-                            <tr>
-                                <th>Lane</th>
-                                <th>Timestamp</th>
-                                <th>Vehicle Count</th>
-                                <th>Green Time</th>
-                                <th>Image</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                        </tbody>
-                    </table>
+                    <div id="lane1-yellow" class="signal-light grey">
+                        <div id="lane1-timer-yellow" class="counter"></div>
+                    </div>
+                    <div id="lane1-green" class="signal-light grey">
+                        <div id="lane1-timer" class="counter"></div>
+                    </div>
                 </div>
             </div>
-
-            <div id="lightbox" class="lightbox">
-                <span class="close" id="lightbox-close">&times;</span>
-                <img class="lightbox-content" id="lightbox-img" alt="Lightbox Image">
-            </div>
+            <div id="lane1-vehicles" class="vehicle_count">Lane 1 Vehicles count:</div>
         </div>
-        <div class="video">
+        <div>
             <h2 class="laneNumber">Lane 2</h2>
-            <img src="/video_feed/Lane2" alt="Lane 2 Video Feed">
-            <div class="traffic-light">
-                <div id="lane2-vehicles" class="vehicle_count">Lane 2 Vehicles count:</div>
-                <div id="lane2-red" class="signal-light grey"></div>
-                <div id="lane2-yellow" class="signal-light grey"></div>
-                <div id="lane2-green" class="signal-light grey"></div>
+            <div class="video">
+                <img src="/video_feed/Lane2" alt="Lane 2 Video Feed">
+                <div class="traffic-light">
+                    <div id="lane2-red" class="signal-light grey">
+                        <div id="lane2-nextGreen" class="counter"></div>
+                    </div>
+                    <div id="lane2-yellow" class="signal-light grey">
+                        <div id="lane2-timer-yellow" class="counter"></div>
+                    </div>
+                    <div id="lane2-green" class="signal-light grey">
+                        <div id="lane2-timer" class="counter"></div>
+                    </div>
+                </div>
             </div>
-            <div id="lane2-timer" class="counter"></div>
-            <div id="lane2-nextGreen" class="counter"></div>
+            <div id="lane2-vehicles" class="vehicle_count">Lane 2 Vehicles count:</div>
         </div>
-        <div class="video">
+        <div>
             <h2 class="laneNumber">Lane 3</h2>
-            <img src="/video_feed/Lane3" alt="Lane 3 Video Feed">
-            <div class="traffic-light">
-                <div id="lane3-vehicles" class="vehicle_count">Lane 3 Vehicles count:</div>
-                <div id="lane3-red" class="signal-light grey"></div>
-                <div id="lane3-yellow" class="signal-light grey"></div>
-                <div id="lane3-green" class="signal-light grey"></div>
+            <div class="video">
+                <img src="/video_feed/Lane3" alt="Lane 3 Video Feed">
+                <div class="traffic-light">
+                    <div id="lane3-red" class="signal-light grey">
+                        <div id="lane3-nextGreen" class="counter"></div>
+                    </div>
+                    <div id="lane3-yellow" class="signal-light grey">
+                        <div id="lane3-timer-yellow" class="counter"></div>
+
+                    </div>
+                    <div id="lane3-green" class="signal-light grey">
+                        <div id="lane3-timer" class="counter"></div>
+                    </div>
+                </div>
             </div>
-            <div id="lane3-timer" class="counter"></div>
-            <div id="lane3-nextGreen" class="counter"></div>
+            <div id="lane3-vehicles" class="vehicle_count">Lane 3 Vehicles count:</div>
         </div>
-        <div class="video">
+        <div>
             <h2 class="laneNumber">Lane 4</h2>
-            <img src="/video_feed/Lane4" alt="Lane 4 Video Feed">
-            <div class="traffic-light">
-                <div id="lane4-vehicles" class="vehicle_count">Lane 4 Vehicles count:</div>
-                <div id="lane4-red" class="signal-light grey"></div>
-                <div id="lane4-yellow" class="signal-light grey"></div>
-                <div id="lane4-green" class="signal-light grey"></div>
+            <div class="video">
+                <img src="/video_feed/Lane4" alt="Lane 4 Video Feed">
+                <div class="traffic-light">
+                    <div id="lane4-red" class="signal-light grey">
+                        <div id="lane4-nextGreen" class="counter"></div>
+                    </div>
+                    <div id="lane4-yellow" class="signal-light grey">
+                        <div id="lane4-timer-yellow" class="counter"></div>
+                    </div>
+                    <div id="lane4-green" class="signal-light grey">
+                        <div id="lane4-timer" class="counter"></div>
+                    </div>
+                </div>
             </div>
-            <div id="lane4-timer" class="counter"></div>
-            <div id="lane4-nextGreen" class="counter"></div>
+            <div id="lane4-vehicles" class="vehicle_count">Lane 4 Vehicles count:</div>
         </div>
+    </div>
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+
+            <div class="filter-section">
+                <select id="lane-filter">
+                    <option value="all">All Lanes</option>
+                    <option value="Lane 1">Lane 1</option>
+                    <option value="Lane 2">Lane 2</option>
+                    <option value="Lane 3">Lane 3</option>
+                    <option value="Lane 4">Lane 4</option>
+                </select>
+                <input type="date" id="date-filter">
+                <label for="start-time-filter">From:</label>
+                <input type="time" id="start-time-filter" step="60">
+                <label for="end-time-filter">To:</label>
+                <input type="time" id="end-time-filter" step="60">
+                <button id="search-button">Search</button>
+                <button id="reset-button">Reset</button>
+            </div>
+            <table id="image-details-table">
+                <thead>
+                    <tr>
+                        <th>Lane</th>
+                        <th>Timestamp</th>
+                        <th>Vehicle Count</th>
+                        <th>Green Time</th>
+                        <th>Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="lightbox" class="lightbox">
+        <span class="close" id="lightbox-close">&times;</span>
+        <img class="lightbox-content" id="lightbox-img" alt="Lightbox Image">
     </div>
     <script type="text/javascript" src="{{ url_for('static', filename = '/js/popup.js') }}"></script>
 
