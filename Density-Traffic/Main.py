@@ -7,7 +7,7 @@ from ultralytics import YOLO
 import threading
 from threading import Lock
 
-model = YOLO("yolov8s.pt")
+model = YOLO("Model/yolov8s.pt")
 shared_resource_lock = Lock()
 
 video_sources = {

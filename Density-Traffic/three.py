@@ -6,7 +6,7 @@ from flask import Flask, Response, render_template, jsonify
 from ultralytics import YOLO
 import threading
 
-model = YOLO("best1.pt")
+model = YOLO("Model/yolov8s.pt")
 
 video_sources = {
     "Lane1": "Video/lane4.mp4",
