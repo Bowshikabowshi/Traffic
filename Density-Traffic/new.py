@@ -11,10 +11,10 @@ model = YOLO("best1.pt")
 shared_resource_lock = Lock()
 
 video_sources = {
-    "Lane1": "Video/lane4.mp4",
-    "Lane2": "Video/lane3.mp4",
-    "Lane3": "Video/lane2.mp4",
-    "Lane4": "Video/lane1.mp4"
+    "Lane1": "Video/newlane1.mp4",
+    "Lane2": "Video/newlane2.mp4",
+    "Lane3": "Video/newlane3.mp4",
+    "Lane4": "Video/newlane4.mp4"
 }
 
 vehicle_counts = {lane: 0 for lane in video_sources}
